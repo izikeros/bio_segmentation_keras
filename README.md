@@ -1,82 +1,65 @@
-# Implementation of deep learning framework -- Unet, using Keras
+# Image segmentation using Deep Learning
 
-The architecture was inspired by [U-Net: Convolutional Networks for Biomedical Image Segmentation](http://lmb.informatik.uni-freiburg.de/people/ronneber/u-net/).
+## Prerequisites
+From the major dependencies project requires Keras and Tensorflow. Installation quick guides:
 
----
+- [TensorFlow installation instructions](https://www.tensorflow.org/install/)
+- [Keras installation instructions.](https://keras.io/#installation)
 
-## Overview
+## Installation
+Create virtual environment and install requires packages.
+```
+pip install -r requirements.txt
+```
+It might be needed to install requirements as user (add `--user` flag to pip)
 
-### Data
-
-The original dataset is from [isbi challenge](http://brainiac2.mit.edu/isbi_challenge/), and I've downloaded it and done the pre-processing.
-
-You can find it in folder data/membrane.
-
-### Data augmentation
-
-The data for training contains 30 512*512 images, which are far not enough to feed a deep learning neural network. I use a module called ImageDataGenerator in keras.preprocessing.image to do data augmentation.
-
-See dataPrepare.ipynb and data.py for detail.
+## Usage
+Run `main.py` and you will see the predicted results of test image in data/membrane/test. Alternatively you can follow notebook [trainUnet.ipnb](./trainUnet.ipnb)
 
 
-### Model
+## Goal
+The goal is to train the network to distinguish different parts of input image, in other words to perform segmentation. The approach used here is to train deep neural network to conduct segmentation task. The network architecture is U-Net as proposed in: [U-Net: Convolutional Networks for Biomedical Image Segmentation](http://lmb.informatik.uni-freiburg.de/people/ronneber/u-net/).
 
-![img/u-net-architecture.png](img/u-net-architecture.png)
+
+## Data
+
+The experiments were conducted on dataset from [isbi challenge](http://brainiac2.mit.edu/isbi_challenge/). He is how the input data looks like:
+
+<img src="./data/membrane/train/image/0.png" width="25%">
+*Figure 1. Input image that needs segmentation.*
+
+<img src="./data/membrane/train/label/0.png" width="25%">
+*Figure 2. Labels for training - in black pixels considered as boundaries.*
+
+The input data for the training is the 30 images which is much too less to train the neural network. To proceed, available data was transformed in different ways to produce new samples that can be used for training. Note, that is labeling data need to be transformed in the same way as input image (features).
+
+
+**Data augmentation**
+The data for training contains 30 images 512x512 pixels each. Fortunately, this is quite common problem in deep learning for computer vision and Keras module `ImageDataGenerator` in `keras.preprocessing.image` has already functions to make different kinds of transformations.
+
+**Data augmentation - resulting samples**
+
+
+## Model
+
+![Neural network architecture](img/u-net-architecture-hi-res.png)
 
 This deep neural network is implemented with Keras functional API, which makes it extremely easy to experiment with different interesting architectures.
 
-Output from the network is a 512*512 which represents mask that should be learned. Sigmoid activation function
-makes sure that mask pixels are in \[0, 1\] range.
+Output from the network is a 512x512 which represents mask that should be learned. Sigmoid activation function makes sure that mask pixels are in \[0, 1\] range.
 
-### Training
+## Training
 
-The model is trained for 5 epochs.
+* The model is trained for 5 epochs. After 5 epochs, calculated accuracy is about 0.97.
 
-After 5 epochs, calculated accuracy is about 0.97.
+* Loss function for the training is  a **binary crossentropy**.
 
-Loss function for the training is basically just a binary crossentropy.
-
-
----
-
-## How to use
-
-### Dependencies
-
-This tutorial depends on the following libraries:
-
-* Tensorflow
-* Keras >= 1.0
-
-Also, this code should be compatible with Python versions 2.7-3.5.
-
-### Run main.py
-
-You will see the predicted results of test image in data/membrane/test
-
-### Or follow notebook trainUnet
-
-
-
-### Results
+## Results
 
 Use the trained model to do segmentation on test images, the result is statisfactory.
 
-![img/0test.png](img/0test.png)
-
-![img/0label.png](img/0label.png)
 
 
-## About Keras
-
-Keras is a minimalist, highly modular neural networks library, written in Python and capable of running on top of either TensorFlow or Theano. It was developed with a focus on enabling fast experimentation. Being able to go from idea to result with the least possible delay is key to doing good research.
-
-Use Keras if you need a deep learning library that:
-
-allows for easy and fast prototyping (through total modularity, minimalism, and extensibility).
-supports both convolutional networks and recurrent networks, as well as combinations of the two.
-supports arbitrary connectivity schemes (including multi-input and multi-output training).
-runs seamlessly on CPU and GPU.
-Read the documentation [Keras.io](http://keras.io/)
-
-Keras is compatible with: Python 2.7-3.5.
+## Credits:
+* *Olaf Ronneberger, Philipp Fischer, Thomas Brox* for Unet Convolutional Network
+* implementation is heavily inspired by: [zhixuhao](https://github.com/zhixuhao/unet) 
