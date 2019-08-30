@@ -1,4 +1,6 @@
 # Image segmentation using Deep Learning
+This implementation is inspired by [zhixuhao/unet)](https://github.com/zhixuhao/unet).
+It uses modern Keras (2.2.5) and tensorflow (2.0RC). 
 
 ## Prerequisites
 From the major dependencies project requires Keras and Tensorflow. Installation quick guides:
