@@ -5,6 +5,7 @@ import glob
 import skimage.io as io
 import skimage.transform as trans
 import logging
+
 logger = logging.getLogger(__name__)
 
 Sky = [128, 128, 128]
@@ -107,8 +108,9 @@ def gen_train(image_path, mask_path, flag_multi_class=False, num_class=2, image_
     for index, item in enumerate(image_name_arr):
         img = io.imread(item, as_gray=image_as_gray)
         img = np.reshape(img, img.shape + (1,)) if image_as_gray else img
-        mask = io.imread(item.replace(image_path, mask_path).replace(image_prefix, mask_prefix),
-                         as_gray=mask_as_gray)
+        mask = io.imread(
+            item.replace(str(image_path), str(mask_path)).replace(image_prefix, mask_prefix),
+            as_gray=mask_as_gray)
         mask = np.reshape(mask, mask.shape + (1,)) if mask_as_gray else mask
         img, mask = adjust_data(img, mask, flag_multi_class, num_class)
         image_arr.append(img)
