@@ -26,25 +26,45 @@ COLOR_DICT = np.array([Sky, Building, Pole, Road, Pavement,
 
 
 def adjust_data(img, mask, flag_multi_class, num_class):
+    """
+
+    :param img: input image
+    :param mask: input mask
+    :param flag_multi_class:
+    :param num_class:
+    :return:
+    """
     if flag_multi_class:
-        img = img / 255
-        mask = mask[:, :, :, 0] if (len(mask.shape) == 4) else mask[:, :, 0]
-        new_mask = np.zeros(mask.shape + (num_class,))
-        for i in range(num_class):
-            # for one pixel in the image, find the class in mask and convert it into one-hot vector
-            # index = np.where(mask == i)
-            # index_mask = (index[0],index[1],index[2],np.zeros(len(index[0]),dtype = np.int64) + i) if (len(mask.shape) == 4) else (index[0],index[1],np.zeros(len(index[0]),dtype = np.int64) + i)
-            # new_mask[index_mask] = 1
-            new_mask[mask == i, i] = 1
-        new_mask = np.reshape(new_mask, (new_mask.shape[0], new_mask.shape[1] * new_mask.shape[2],
-                                         new_mask.shape[3])) if flag_multi_class else np.reshape(
-            new_mask, (new_mask.shape[0] * new_mask.shape[1], new_mask.shape[2]))
-        mask = new_mask
+        img, mask = adjust_multiclass(flag_multi_class, img, mask, num_class)
     elif np.max(img) > 1:
-        img = img / 255
-        mask = mask / 255
-        mask[mask > 0.5] = 1
-        mask[mask <= 0.5] = 0
+        img, mask = adjust_dual_class(img, mask)
+    return img, mask
+
+
+def adjust_dual_class(img, mask):
+    # normalization of image and mask to range: [0,1]
+    img = img / 255
+    mask = mask / 255
+    # mask binarization
+    mask[mask > 0.5] = 1
+    mask[mask <= 0.5] = 0
+    return img, mask
+
+
+def adjust_multiclass(flag_multi_class, img, mask, num_class):
+    img = img / 255
+    mask = mask[:, :, :, 0] if (len(mask.shape) == 4) else mask[:, :, 0]
+    new_mask = np.zeros(mask.shape + (num_class,))
+    for i in range(num_class):
+        # for one pixel in the image, find the class in mask and convert it into one-hot vector
+        # index = np.where(mask == i)
+        # index_mask = (index[0],index[1],index[2],np.zeros(len(index[0]),dtype = np.int64) + i) if (len(mask.shape) == 4) else (index[0],index[1],np.zeros(len(index[0]),dtype = np.int64) + i)
+        # new_mask[index_mask] = 1
+        new_mask[mask == i, i] = 1
+    new_mask = np.reshape(new_mask, (new_mask.shape[0], new_mask.shape[1] * new_mask.shape[2],
+                                     new_mask.shape[3])) if flag_multi_class else np.reshape(
+        new_mask, (new_mask.shape[0] * new_mask.shape[1], new_mask.shape[2]))
+    mask = new_mask
     return img, mask
 
 
@@ -62,6 +82,7 @@ def train_generator(batch_size, train_path, image_folder, mask_folder, aug_dict,
     """
     image_datagen = ImageDataGenerator(**aug_dict)
     mask_datagen = ImageDataGenerator(**aug_dict)
+
     image_generator = image_datagen.flow_from_directory(
         train_path,
         classes=[image_folder],
@@ -72,6 +93,7 @@ def train_generator(batch_size, train_path, image_folder, mask_folder, aug_dict,
         save_to_dir=save_to_dir,
         save_prefix=image_save_prefix,
         seed=seed)
+
     mask_generator = mask_datagen.flow_from_directory(
         train_path,
         classes=[mask_folder],
@@ -82,6 +104,9 @@ def train_generator(batch_size, train_path, image_folder, mask_folder, aug_dict,
         save_to_dir=save_to_dir,
         save_prefix=mask_save_prefix,
         seed=seed)
+
+    if save_to_dir:
+        logger.info(f'saving to: {save_to_dir}')
 
     train_zip = zip(image_generator, mask_generator)
     for (img, mask) in train_zip:
